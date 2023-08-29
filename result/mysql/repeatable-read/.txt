@@ -1,0 +1,10 @@
+#### db_type: mysql ####
+#### test_name:  ####
+#### isolation_level: repeatable-read ####
+
+Preparation: create new tables and insert necessory rows
+Execution: execute transactions in parallel
+ 
+set TXN_ISOLATION = repeatable-read for each session
+
+---------- test preparation----------

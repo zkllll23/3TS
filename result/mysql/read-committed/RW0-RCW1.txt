@@ -1,0 +1,38 @@
+#### db_type: mysql ####
+#### test_name: RW0-RCW1 ####
+#### isolation_level: read-committed ####
+
+Preparation: create new tables and insert necessory rows
+Execution: execute transactions in parallel
+ 
+set TXN_ISOLATION = read-committed for each session
+
+----------RW0-RCW1 test preparation----------
+Q0-T1 execute sql: 'DROP TABLE IF EXISTS t1;'
+Q0-T1 execute sql: 'CREATE TABLE t1 (k INT PRIMARY KEY, v INT);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (0,0);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (1,1);'
+
+----------RW0-RCW1 test execution----------
+Q1-T1 execute opt: 'BEGIN;'
+Q1-T1 finished at: 2023-8-23 21:3:36:139:818
+Q2-T1 execute sql: 'SELECT * FROM t1 WHERE k=0;'
+Q2-T1 return result: (0,0) 
+Q2-T1 finished at: 2023-8-23 21:3:36:142:806
+                                        Q3-T2 execute opt: 'BEGIN;'
+                                        Q3-T2 finished at: 2023-8-23 21:3:36:235:754
+                                        Q4-T2 execute sql: 'SELECT * FROM t1 WHERE k=1;'
+                                        Q4-T2 return result: (1,1) 
+                                        Q4-T2 finished at: 2023-8-23 21:3:36:237:251
+                                        Q5-T2 execute sql: 'UPDATE t1 SET v=1 WHERE k=0;'
+                                        Q5-T2 finished at: 2023-8-23 21:3:36:238:351
+                                        Q6-T2 execute opt: 'COMMIT;'
+                                        Q6-T2 finished at: 2023-8-23 21:3:36:240:197
+Q7-T1 execute sql: 'UPDATE t1 SET v=2 WHERE k=1;'
+Q7-T1 finished at: 2023-8-23 21:3:36:241:671
+Q8-T1 execute opt: 'COMMIT;'
+Q8-T1 finished at: 2023-8-23 21:3:36:242:703
+
+Test Result: Finish
+Reason: The test case was finished without rollback, to be checked if consistent
+

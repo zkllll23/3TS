@@ -1,0 +1,36 @@
+#### db_type: mysql ####
+#### test_name: WI0-II1 ####
+#### isolation_level: read-committed ####
+
+Preparation: create new tables and insert necessory rows
+Execution: execute transactions in parallel
+ 
+set TXN_ISOLATION = read-committed for each session
+
+----------WI0-II1 test preparation----------
+Q0-T1 execute sql: 'DROP TABLE IF EXISTS t1;'
+Q0-T1 execute sql: 'CREATE TABLE t1 (k INT PRIMARY KEY, v INT);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (0,0);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (2,2);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (4,4);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (1,1);'
+
+----------WI0-II1 test execution----------
+Q1-T1 execute opt: 'BEGIN;'
+Q1-T1 finished at: 2023-8-23 21:37:48:400:632
+Q2-T1 execute sql: 'UPDATE t1 SET v=2 WHERE k=1;'
+Q2-T1 finished at: 2023-8-23 21:37:48:401:752
+                                        Q3-T2 execute opt: 'BEGIN;'
+                                        Q3-T2 finished at: 2023-8-23 21:37:48:501:279
+                                        Q4-T2 execute sql: 'INSERT INTO t1 VALUES (3,3);'
+                                        Q4-T2 finished at: 2023-8-23 21:37:48:503:829
+                                        Q5-T2 execute sql: 'INSERT INTO t1 VALUES (1,1);'
+Q6-T1 execute sql: 'INSERT INTO t1 VALUES (3,3);'
+                                        Q5-T2 failed reason: [unixODBC][Driver Manager]Function sequence error errcode: HY010
+                                        Q5-T2 failed at: 2023-8-23 21:37:49:103:58
+Q6-T1 failed reason: [unixODBC][Driver Manager]Function sequence error errcode: HY010
+Q6-T1 failed at: 2023-8-23 21:37:49:204:307
+
+Test Result: Rollback
+Reason: [unixODBC][Driver Manager]Function sequence error
+

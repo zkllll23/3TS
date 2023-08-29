@@ -1,0 +1,10 @@
+#### db_type: mysql ####
+#### test_name:  ####
+#### isolation_level: read-committed ####
+
+Preparation: create new tables and insert necessory rows
+Execution: execute transactions in parallel
+ 
+set TXN_ISOLATION = read-committed for each session
+
+---------- test preparation----------

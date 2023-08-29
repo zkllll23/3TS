@@ -1,0 +1,33 @@
+#### db_type: mysql ####
+#### test_name: II0-WCP1 ####
+#### isolation_level: read-committed ####
+
+Preparation: create new tables and insert necessory rows
+Execution: execute transactions in parallel
+ 
+set TXN_ISOLATION = read-committed for each session
+
+----------II0-WCP1 test preparation----------
+Q0-T1 execute sql: 'DROP TABLE IF EXISTS t1;'
+Q0-T1 execute sql: 'CREATE TABLE t1 (k INT PRIMARY KEY, v INT);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (0,0);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (2,2);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (4,4);'
+Q0-T1 execute sql: 'INSERT INTO t1 VALUES (3,3);'
+
+----------II0-WCP1 test execution----------
+Q1-T1 execute opt: 'BEGIN;'
+Q1-T1 finished at: 2023-8-23 21:59:41:122:171
+Q2-T1 execute sql: 'INSERT INTO t1 VALUES (1,1);'
+Q2-T1 finished at: 2023-8-23 21:59:41:124:215
+                                        Q3-T2 execute opt: 'BEGIN;'
+                                        Q3-T2 finished at: 2023-8-23 21:59:41:220:142
+                                        Q4-T2 execute sql: 'UPDATE t1 SET v=4 WHERE k=3;'
+                                        Q4-T2 finished at: 2023-8-23 21:59:41:221:661
+                                        Q5-T2 execute sql: 'INSERT INTO t1 VALUES (1,1);'
+                                        Q5-T2 failed reason: [unixODBC][Driver Manager]Function sequence error errcode: HY010
+                                        Q5-T2 failed at: 2023-8-23 22:0:31:740:533
+
+Test Result: Rollback
+Reason: [unixODBC][Driver Manager]Function sequence error
+
